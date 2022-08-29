@@ -46,7 +46,11 @@
  * Zone JS is required by default for Angular itself.
  */
 import 'zone.js';  // Included with Angular CLI.
+import 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
+import 'leaflet-draw'
+import 'leaflet-draw/dist/leaflet.draw.css'
 
 /***************************************************************************************************
  * APPLICATION IMPORTS

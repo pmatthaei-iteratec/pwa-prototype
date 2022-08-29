@@ -2,6 +2,7 @@ import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {db, Schaden} from "./db";
 import {liveQuery} from "dexie";
+import {FeatureGroup, featureGroup, latLng, tileLayer} from "leaflet";
 
 @Component({
   selector: 'app-root',
@@ -9,8 +10,10 @@ import {liveQuery} from "dexie";
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit, AfterViewInit {
-  @ViewChild('video1') videoRef!: ElementRef;
-  @ViewChild('canvas1') canvasRef!: ElementRef;
+  @ViewChild('video') videoRef!: ElementRef;
+  @ViewChild('canvas') canvasRef!: ElementRef;
+  @ViewChild('imageFileInput') imageFileInput!: ElementRef;
+
   private canvas: any;
   private video: any;
   public videoCapable = true;
@@ -45,7 +48,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: {facingMode: {exact: "environment"}},
         audio: false
       })
         .then(stream => {
@@ -97,4 +100,40 @@ export class AppComponent implements OnInit, AfterViewInit {
   async deleteSchaden(id?: number){
     id ? await db.schaeden.delete(id): undefined
   }
+
+  setFile(event: any) {
+    const selectedFile = event?.target.files || event.srcElement.files;
+    if (selectedFile !== null && selectedFile !== '' && selectedFile.length > 0) {
+      const file = selectedFile[0];
+      this.bildCtrl.patchValue(file)
+      this.clearFile();
+    }
+  }
+
+  public clearFile() {
+    this.imageFileInput.nativeElement.value = null;
+  }
+
+  // LEAFLET
+  options = {
+    layers: [
+      tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
+    ],
+    zoom: 5,
+    center: latLng(46.879966, -121.726909)
+  };
+
+  drawnItems: FeatureGroup = featureGroup();
+
+  drawOptions = {
+    edit: {
+      featureGroup: this.drawnItems
+    }
+  };
+
+  public onDrawCreated(e: any) {
+    this.drawnItems.addLayer(e.layer);
+  }
+
+
 }

@@ -8,15 +8,22 @@
         <input matInput formControlName="title">
       </mat-form-field>
 
+      <div fxFlex>
+        <button type="button" mat-raised-button (click)="fileInput.click()">Bild aufnehmen</button>
+        <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*"
+               capture="environment"/>
+      </div>
+
       <div fxFlex fxLayoutAlign="center">
         <div fxFlex *ngIf="!videoCapable">Access to camera denied</div>
-        <video fxFlex width="100%" *ngIf="videoCapable && !pictureTaken" #video1 autoplay></video>
-        <canvas fxFlex [fxHide]="!pictureTaken" #canvas1 width="100%"></canvas>
+        <video fxFlex width="100%" *ngIf="videoCapable && !pictureTaken" #video autoplay></video>
+        <canvas fxFlex [fxHide]="!pictureTaken" #canvas width="100%"></canvas>
       </div>
 
       <div fxFlex fxLayoutGap="12px">
         <button *ngIf="videoCapable" mat-raised-button (click)="captureImage()">Bild aufnehmen</button>
-        <a *ngIf="pictureTaken" mat-flat-button href="{{downloadLink}}" download="image.png"><i class="fa fa-download"></i>
+        <a *ngIf="pictureTaken" mat-flat-button href="{{downloadLink}}" download="image.png"><i
+          class="fa fa-download"></i>
           Download</a>
       </div>
 
@@ -49,4 +56,14 @@
       </mat-selection-list>
     </ng-container>
   </div>
+</div>
+
+<div leaflet style="height: 400px;"
+     leafletDraw
+     [leafletOptions]="options"
+     [leafletDrawOptions]="drawOptions"
+     (leafletDrawCreated)="onDrawCreated($event)">
+
+  <div [leafletLayer]="drawnItems"></div>
+
 </div>

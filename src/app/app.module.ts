@@ -14,6 +14,8 @@ import {MatInputModule} from "@angular/material/input";
 import {MatDividerModule} from "@angular/material/divider";
 import {MatListModule} from "@angular/material/list";
 import {MatIconModule} from "@angular/material/icon";
+import {LeafletModule} from "@asymmetrik/ngx-leaflet";
+import {LeafletDrawModule} from "@asymmetrik/ngx-leaflet-draw";
 
 @NgModule({
   declarations: [
@@ -38,7 +40,10 @@ import {MatIconModule} from "@angular/material/icon";
     MatInputModule,
     MatDividerModule,
     MatListModule,
-    MatIconModule
+    MatIconModule,
+
+    LeafletModule,
+    LeafletDrawModule
   ],
   providers: [],
   bootstrap: [AppComponent]
