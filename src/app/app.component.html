@@ -1,69 +1,92 @@
-<div fxFlexFill fxLayout="row" fxLayoutGap="32px" style="padding: 32px">
-  <div fxFlex="50%" fxLayout="column">
-    <h1>Schadenserfassung</h1>
-    <div [formGroup]="form" fxLayout="column" fxLayoutGap="12px">
+<mat-toolbar color="primary">
+  <button mat-icon-button>
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span fxFlex="grow">BMS Mobile</span>
+  <button mat-icon-button>
+    <mat-icon>wifi</mat-icon>
+  </button>
+  <button mat-icon-button>
+    <mat-icon>person</mat-icon>
+  </button>
+</mat-toolbar>
 
-      <mat-form-field fxFlex>
-        <mat-label>Titel</mat-label>
-        <input matInput formControlName="title">
-      </mat-form-field>
+<mat-tab-group fxFlexFill>
 
-      <div fxFlex>
-        <button type="button" mat-raised-button (click)="fileInput.click()">Bild aufnehmen</button>
-        <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*"
-               capture="environment"/>
-      </div>
+  <mat-tab label="Schadenserfassung">
+    <div fxFlex fxLayout="column">
+      <div [formGroup]="form" fxLayout="column" fxLayoutGap="12px">
 
-      <div fxFlex fxLayoutAlign="center">
-        <div fxFlex *ngIf="!videoCapable">Access to camera denied</div>
-        <video fxFlex width="100%" *ngIf="videoCapable && !pictureTaken" #video autoplay></video>
-        <canvas fxFlex [fxHide]="!pictureTaken" #canvas width="100%"></canvas>
-      </div>
+        <mat-form-field fxFlex>
+          <mat-label>Titel</mat-label>
+          <input matInput formControlName="title">
+        </mat-form-field>
 
-      <div fxFlex fxLayoutGap="12px">
-        <button *ngIf="videoCapable" mat-raised-button (click)="captureImage()">Bild aufnehmen</button>
-        <a *ngIf="pictureTaken" mat-flat-button href="{{downloadLink}}" download="image.png"><i
-          class="fa fa-download"></i>
-          Download</a>
-      </div>
+        <div fxFlex>
+          <button type="button" mat-raised-button (click)="fileInput.click()">Bild aufnehmen</button>
+          <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*"
+                 capture="environment"/>
+        </div>
 
-      <mat-form-field>
-        <mat-label>Anzahl</mat-label>
-        <input matInput formControlName="count" placeholder="Wie oft soll der Schaden hinterlegt werden?">
-      </mat-form-field>
+        <div fxFlex fxLayoutAlign="center">
+          <div fxFlex *ngIf="!videoCapable">Access to camera denied</div>
+          <video fxFlex width="100%" *ngIf="videoCapable && !pictureTaken" #video autoplay></video>
+          <canvas fxFlex [fxHide]="!pictureTaken" #canvas width="100%"></canvas>
+        </div>
 
-      <mat-divider></mat-divider>
+        <div fxFlex fxLayoutGap="12px">
+          <button *ngIf="videoCapable" mat-raised-button (click)="captureImage()">Bild aufnehmen</button>
+          <a *ngIf="pictureTaken" mat-flat-button href="{{downloadLink}}" download="image.png"><i
+            class="fa fa-download"></i>
+            Download</a>
+        </div>
 
-      <div fxFlex>
-        <button [disabled]="form.invalid" mat-raised-button color="primary" (click)="save()">Speichern</button>
+        <mat-form-field>
+          <mat-label>Anzahl</mat-label>
+          <input matInput formControlName="count" placeholder="Wie oft soll der Schaden hinterlegt werden?">
+        </mat-form-field>
+
+        <mat-divider></mat-divider>
+
+        <div fxFlex>
+          <button [disabled]="form.invalid" mat-raised-button color="primary" (click)="save()">Speichern</button>
+        </div>
       </div>
     </div>
-  </div>
+  </mat-tab>
 
-  <div fxFlex="50%" fxLayout="column">
+  <mat-tab label="Schadensliste">
     <ng-container *ngIf="schaeden$ | async as schaeden">
-      <h1>Schadensliste ({{ schaeden.length}})</h1>
-      <mat-selection-list [multiple]="false" style="overflow: auto">
-        <mat-list-option *ngFor="let schaden of schaeden" [value]="schaden">
-          <div fxFlex>
-            <div fxFlexFill>{{schaden.title}}</div>
-            <button fxFlex mat-icon-button (click)="deleteSchaden(schaden.id)">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
+      <ng-template mat-tab-label>
+        <div>Schadensliste ({{ schaeden.length}})</div>
+      </ng-template>
+      <div fxFlex="50%" fxLayout="column">
+        <mat-selection-list [multiple]="false" style="overflow: auto">
+          <mat-list-option *ngFor="let schaden of schaeden" [value]="schaden">
+            <div fxFlex>
+              <div fxFlexFill>{{schaden.title}}</div>
+              <button fxFlex mat-icon-button (click)="deleteSchaden(schaden.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
 
-        </mat-list-option>
-      </mat-selection-list>
+          </mat-list-option>
+        </mat-selection-list>
+      </div>
     </ng-container>
-  </div>
-</div>
+  </mat-tab>
 
-<div leaflet style="height: 400px;"
-     leafletDraw
-     [leafletOptions]="options"
-     [leafletDrawOptions]="drawOptions"
-     (leafletDrawCreated)="onDrawCreated($event)">
+  <mat-tab label="Übersichtsplan">
+    <div style="height: 400px" >
+      <div leaflet style="height: 400px" fxFlexFill
+           leafletDraw
+           [leafletOptions]="options"
+           [leafletDrawOptions]="drawOptions"
+           (leafletDrawCreated)="onDrawCreated($event)">
+        <div [leafletLayer]="drawnItems"></div>
+      </div>
+    </div>
 
-  <div [leafletLayer]="drawnItems"></div>
+  </mat-tab>
+</mat-tab-group>
 
-</div>
