@@ -3,8 +3,16 @@
     <mat-icon>menu</mat-icon>
   </button>
   <span fxFlex="grow">BMS Mobile</span>
+  <span style="font-size: 12px">{{ availableSpace }}</span>
   <button mat-icon-button>
-    <mat-icon>wifi</mat-icon>
+    <ng-container *ngIf="isOnline$ | async; else showOffline">
+      <mat-icon>wifi</mat-icon>
+    </ng-container>
+    <ng-template #showOffline>
+      <mat-icon>
+        wifi_off
+      </mat-icon>
+    </ng-template>
   </button>
   <button mat-icon-button>
     <mat-icon>person</mat-icon>
@@ -14,7 +22,7 @@
 <mat-tab-group fxFlexFill>
 
   <mat-tab label="Schadenserfassung">
-    <div fxFlex fxLayout="column">
+    <div fxFlex fxLayout="column" style="padding: 12px">
       <div [formGroup]="form" fxLayout="column" fxLayoutGap="12px">
 
         <mat-form-field fxFlex>
@@ -22,10 +30,13 @@
           <input matInput formControlName="title">
         </mat-form-field>
 
-        <div fxFlex>
-          <button type="button" mat-raised-button (click)="fileInput.click()">Bild aufnehmen</button>
-          <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*"
+        <div fxFlex fxLayout="row" fxLayoutGap="12px">
+          <button type="button" mat-raised-button (click)="cameraInput.click()">Bild aufnehmen</button>
+          <input hidden #cameraInput type="file" #frontCameraInput (change)="setFile($event)" accept="image/*"
                  capture="environment"/>
+
+          <button type="button" mat-raised-button (click)="fileInput.click()">Bild auswählen</button>
+          <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*" />
         </div>
 
         <div fxFlex fxLayoutAlign="center">
@@ -57,35 +68,48 @@
 
   <mat-tab label="Schadensliste">
     <ng-container *ngIf="schaeden$ | async as schaeden">
+      
       <ng-template mat-tab-label>
         <div>Schadensliste ({{ schaeden.length}})</div>
       </ng-template>
-      <div fxFlex="50%" fxLayout="column">
-        <mat-selection-list [multiple]="false" style="overflow: auto">
-          <mat-list-option *ngFor="let schaden of schaeden" [value]="schaden">
-            <div fxFlex>
-              <div fxFlexFill>{{schaden.title}}</div>
-              <button fxFlex mat-icon-button (click)="deleteSchaden(schaden.id)">
+
+      <div fxLayout.gt-lg="row" fxLayout.sm="column">
+        <div fxFlex="50%" fxLayout="column" style="padding: 12px">
+          <mat-nav-list>
+            <mat-list-item *ngFor="let schaden of schaeden">
+              <a matLine (click)="onSelect(schaden)">{{ schaden.title }}</a>
+              <button mat-icon-button (click)="deleteSchaden(schaden.id)">
                 <mat-icon>delete</mat-icon>
               </button>
-            </div>
+            </mat-list-item>
+          </mat-nav-list>
+        </div>
 
-          </mat-list-option>
-        </mat-selection-list>
+        <div fxFlex="50%" fxLayout="column" style="padding: 12px">
+          <ng-container *ngIf="selected">
+            <span>{{ selected.title}}</span>
+            <img *ngIf="selected.bild" [src]="getAsDataURL(selected.bild)">
+          </ng-container>
+        </div>
       </div>
+
     </ng-container>
   </mat-tab>
 
   <mat-tab label="Übersichtsplan">
-    <div style="height: 400px" >
-      <div leaflet style="height: 400px" fxFlexFill
-           leafletDraw
-           [leafletOptions]="options"
-           [leafletDrawOptions]="drawOptions"
-           (leafletDrawCreated)="onDrawCreated($event)">
-        <div [leafletLayer]="drawnItems"></div>
+    <ng-template matTabContent>
+      <div style="height: 400px">
+        <div leaflet style="height: 400px" fxFlexFill
+             leafletDraw
+             (leafletMapReady)="onMapReady($event)"
+             [leafletOptions]="options"
+             [leafletDrawOptions]="drawOptions"
+             (leafletDrawCreated)="onDrawCreated($event)">
+          <div [leafletLayer]="drawnItems"></div>
+        </div>
       </div>
-    </div>
+    </ng-template>
+
 
   </mat-tab>
 </mat-tab-group>

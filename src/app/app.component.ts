@@ -2,7 +2,10 @@ import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {db, Schaden} from "./db";
 import {liveQuery} from "dexie";
-import {FeatureGroup, featureGroup, latLng, tileLayer} from "leaflet";
+import {FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
+import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
+import {OnlineStateService} from "./online-state.service";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'app-root',
@@ -13,6 +16,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild('video') videoRef!: ElementRef;
   @ViewChild('canvas') canvasRef!: ElementRef;
   @ViewChild('imageFileInput') imageFileInput!: ElementRef;
+  @ViewChild('frontCameraInput') frontCameraInput!: ElementRef;
 
   private canvas: any;
   private video: any;
@@ -25,11 +29,16 @@ export class AppComponent implements OnInit, AfterViewInit {
   bildCtrl: FormControl
   countCtrl: FormControl
 
+  availableSpace!: string
+  selected: Schaden | undefined
+
   schaeden$ = liveQuery(
     () => this.getSchaeden()
   );
 
-  constructor(private fb: FormBuilder) {
+  isOnline$: Observable<boolean>
+
+  constructor(private fb: FormBuilder, private sanitizer: DomSanitizer, private onlineStateService: OnlineStateService) {
     this.bildCtrl = this.fb.control(null)
     this.countCtrl = this.fb.control(null)
     this.form = this.fb.group({
@@ -37,6 +46,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       bild: this.bildCtrl,
       count: this.countCtrl
     })
+    this.isOnline$ = this.onlineStateService.isOnline()
   }
 
   ngOnInit() {
@@ -45,6 +55,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.canvas = this.canvasRef.nativeElement;
     this.video = this.videoRef.nativeElement;
+
+    this.showEstimatedQuota().then((available) => {
+      this.availableSpace = available
+    })
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({
@@ -97,8 +111,12 @@ export class AppComponent implements OnInit, AfterViewInit {
     return await db.schaeden.toArray()
   }
 
-  async deleteSchaden(id?: number){
-    id ? await db.schaeden.delete(id): undefined
+  async getSchaden() {
+    return await db.schaeden.get(this.selected?.id ?? -1);
+  }
+
+  async deleteSchaden(id?: number) {
+    id ? await db.schaeden.delete(id) : undefined
   }
 
   setFile(event: any) {
@@ -112,12 +130,13 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   public clearFile() {
     this.imageFileInput.nativeElement.value = null;
+    this.frontCameraInput.nativeElement.value = null;
   }
 
   // LEAFLET
   options = {
     layers: [
-      tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
+      tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: '...'})
     ],
     zoom: 5,
     center: latLng(46.879966, -121.726909)
@@ -136,4 +155,31 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
 
+  onMapReady(map: Map) {
+    map.invalidateSize()
+  }
+
+  async showEstimatedQuota(): Promise<string> {
+    if (navigator.storage && navigator.storage.estimate) {
+      const {usage, quota} = await navigator.storage.estimate();
+      if (quota && usage) {
+        const availableSpaceInBytes = quota - usage;
+        const availableSpaceInMB = availableSpaceInBytes / (1024 * 1024);
+        return `${availableSpaceInMB.toFixed(0)} MB available.`
+      } else {
+        return `- MB available.`
+      }
+    } else {
+      return "StorageManager not found"
+    }
+  }
+
+  async onSelect(schaden: Schaden) {
+    this.selected = schaden?.id ? await db.schaeden.get(schaden.id) : undefined;
+  }
+
+  getAsDataURL(bild: Blob): SafeUrl {
+    let objectURL = URL.createObjectURL(bild);
+    return this.sanitizer.bypassSecurityTrustUrl(objectURL);
+  }
 }
