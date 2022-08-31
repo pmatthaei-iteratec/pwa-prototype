@@ -55,5 +55,12 @@
       "type": "image/png",
       "purpose": "maskable any"
     }
-  ]
+  ],
+    "file_handlers": [{
+      "action": "/",
+      "accept": {
+        "image/png": [".png"]
+      }
+    }]
+
 }

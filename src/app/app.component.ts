@@ -2,10 +2,11 @@ import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {db, Schaden} from "./db";
 import {liveQuery} from "dexie";
-import {FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
+import {DomUtil, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
 import {Observable} from "rxjs";
+import get = DomUtil.get;
 
 @Component({
   selector: 'app-root',
@@ -32,9 +33,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   availableSpace!: string
   selected: Schaden | undefined
 
-  schaeden$ = liveQuery(
-    () => this.getSchaeden()
-  );
+  schaeden$ = liveQuery(() => this.getSchaeden());
 
   isOnline$: Observable<boolean>
 
@@ -64,8 +63,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       navigator.mediaDevices.getUserMedia({
         video: {facingMode: {exact: "environment"}},
         audio: false
-      })
-        .then(stream => {
+      }).then((stream) => {
           this.mediaStream = stream;
           this.videoCapable = true;
           const that = this;
@@ -100,9 +98,11 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   async save() {
     const count = +this.countCtrl.value ?? 1
+    const bild = this.form.value.bild as File;
     const schaeden: Schaden[] = [...Array(count).keys()].map((id: number) => ({
       title: `${this.form.value.title} ${id}`,
-      bild: this.form.value.bild
+      bild: this.form.value.bild,
+      path: `${bild.name} ${bild.webkitRelativePath}`
     }))
     await db.schaeden.bulkAdd([...schaeden]);
   }
@@ -181,5 +181,61 @@ export class AppComponent implements OnInit, AfterViewInit {
   getAsDataURL(bild: Blob): SafeUrl {
     let objectURL = URL.createObjectURL(bild);
     return this.sanitizer.bypassSecurityTrustUrl(objectURL);
+  }
+
+  openFile = async () => {
+      const [handle] = await (window as any).showOpenFilePicker({
+        startIn: 'pictures'
+      });
+      handle.getFile().then(console.log)
+      return handle.getFile();
+  };
+
+  async returnPathDirectories() {
+    const dirHandle = await (window as any).showDirectoryPicker({startIn: 'pictures'});
+    // await this.verifyPermission()
+
+    // Get a file handle by showing a file picker:
+    const [handle] = await (window as any).showOpenFilePicker({
+      startIn: dirHandle
+    });
+    if (!handle) {
+      // User cancelled, or otherwise failed to open a file.
+      return;
+    }
+
+    // Check if handle exists inside directory our directory handle
+    const relativePaths = await dirHandle.resolve(handle);
+    console.log(relativePaths);
+
+    if (relativePaths === null) {
+      console.log("Not inside");
+
+      // Not inside directory handle
+    } else {
+      // relativePaths is an array of names, giving the relative path
+
+      for (const name of relativePaths) {
+        // log each entry
+        console.log(name);
+      }
+    }
+  }
+
+  async  verifyPermission(fileHandle: any, readWrite?: boolean) {
+    const options: any = {};
+    if (readWrite) {
+      options.mode = 'readwrite';
+    }
+    // Check if permission was already granted. If so, return true.
+    if ((await fileHandle.queryPermission(options)) === 'granted') {
+      return true;
+    }
+    // Request permission. If the user grants permission, return true.
+    if ((await fileHandle.requestPermission(options)) === 'granted') {
+      return true;
+    }
+    // The user didn't grant permission, so return false.
+    return false;
   }
 }

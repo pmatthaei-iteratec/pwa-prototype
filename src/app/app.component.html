@@ -37,6 +37,9 @@
 
           <button type="button" mat-raised-button (click)="fileInput.click()">Bild auswählen</button>
           <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*" />
+
+          <button type="button" mat-raised-button (click)="returnPathDirectories()">Bild auswählen (File API)</button>
+
         </div>
 
         <div fxFlex fxLayoutAlign="center">
@@ -68,7 +71,7 @@
 
   <mat-tab label="Schadensliste">
     <ng-container *ngIf="schaeden$ | async as schaeden">
-      
+
       <ng-template mat-tab-label>
         <div>Schadensliste ({{ schaeden.length}})</div>
       </ng-template>
