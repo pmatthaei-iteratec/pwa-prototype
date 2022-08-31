@@ -2,12 +2,11 @@ import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {db, Schaden} from "./db";
 import {liveQuery} from "dexie";
-import {DomUtil, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
+import {Control, DomUtil, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
 import {Observable} from "rxjs";
-import get = DomUtil.get;
-
+import DrawConstructorOptions = Control.DrawConstructorOptions
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -64,15 +63,15 @@ export class AppComponent implements OnInit, AfterViewInit {
         video: {facingMode: {exact: "environment"}},
         audio: false
       }).then((stream) => {
-          this.mediaStream = stream;
-          this.videoCapable = true;
-          const that = this;
-          this.video.srcObject = this.mediaStream;
-          this.video.play().then((value: any) => {
-            that.canvas.width = that.video.videoWidth;
-            that.canvas.height = that.video.videoHeight;
-          });
-        })
+        this.mediaStream = stream;
+        this.videoCapable = true;
+        const that = this;
+        this.video.srcObject = this.mediaStream;
+        this.video.play().then((value: any) => {
+          that.canvas.width = that.video.videoWidth;
+          that.canvas.height = that.video.videoHeight;
+        });
+      })
         .catch(err => {
           this.videoCapable = false;
         });
@@ -145,10 +144,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   drawnItems: FeatureGroup = featureGroup();
 
   drawOptions = {
+    draw: {rectangle: { showArea: false}}, // Fix
     edit: {
       featureGroup: this.drawnItems
     }
-  };
+  } as DrawConstructorOptions;
 
   public onDrawCreated(e: any) {
     this.drawnItems.addLayer(e.layer);
@@ -184,11 +184,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   openFile = async () => {
-      const [handle] = await (window as any).showOpenFilePicker({
-        startIn: 'pictures'
-      });
-      handle.getFile().then(console.log)
-      return handle.getFile();
+    const [handle] = await (window as any).showOpenFilePicker({
+      startIn: 'pictures'
+    });
+    handle.getFile().then(console.log)
+    return handle.getFile();
   };
 
   async returnPathDirectories() {
@@ -220,9 +220,10 @@ export class AppComponent implements OnInit, AfterViewInit {
         console.log(name);
       }
     }
+
   }
 
-  async  verifyPermission(fileHandle: any, readWrite?: boolean) {
+  async verifyPermission(fileHandle: any, readWrite?: boolean) {
     const options: any = {};
     if (readWrite) {
       options.mode = 'readwrite';
