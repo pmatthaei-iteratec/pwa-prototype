@@ -2,11 +2,13 @@ import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {db, Schaden} from "./db";
 import {liveQuery} from "dexie";
-import {Control, DomUtil, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
+import {Control, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
 import {Observable} from "rxjs";
-import DrawConstructorOptions = Control.DrawConstructorOptions
+import {UpdateNotificationService} from "./update-notification.service";
+import DrawConstructorOptions = Control.DrawConstructorOptions;
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -36,7 +38,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   isOnline$: Observable<boolean>
 
-  constructor(private fb: FormBuilder, private sanitizer: DomSanitizer, private onlineStateService: OnlineStateService) {
+  constructor(private fb: FormBuilder, private sanitizer: DomSanitizer, private onlineStateService: OnlineStateService, private updateNotificationService: UpdateNotificationService) {
     this.bildCtrl = this.fb.control(null)
     this.countCtrl = this.fb.control(null)
     this.form = this.fb.group({
@@ -144,7 +146,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   drawnItems: FeatureGroup = featureGroup();
 
   drawOptions = {
-    draw: {rectangle: { showArea: false}}, // Fix
+    draw: {rectangle: {showArea: false}}, // Fix
     edit: {
       featureGroup: this.drawnItems
     }

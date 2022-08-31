@@ -18,6 +18,7 @@ import {LeafletModule} from "@asymmetrik/ngx-leaflet";
 import {LeafletDrawModule} from "@asymmetrik/ngx-leaflet-draw";
 import {MatToolbarModule} from "@angular/material/toolbar";
 import {MatTabsModule} from "@angular/material/tabs";
+import {MatSnackBarModule} from "@angular/material/snack-bar";
 
 @NgModule({
   declarations: [
@@ -45,6 +46,7 @@ import {MatTabsModule} from "@angular/material/tabs";
     MatIconModule,
     MatToolbarModule,
     MatTabsModule,
+    MatSnackBarModule,
 
     LeafletModule,
     LeafletDrawModule
