@@ -5,6 +5,7 @@ export interface Schaden {
   title: string;
   bild?: Blob;
   path?: string;
+  synced?: boolean
 }
 
 export class AppDB extends Dexie {

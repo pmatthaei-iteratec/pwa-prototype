@@ -4,7 +4,7 @@
       <mat-icon>menu</mat-icon>
     </button>
     <span fxFlex="grow">BMS Mobile</span>
-    <span style="font-size: 12px">{{ availableSpace }}</span>
+    <span style="font-size: 12px">{{ showEstimatedQuota() | async }}</span>
     <button mat-icon-button>
       <ng-container *ngIf="isOnline$ | async; else showOffline">
         <mat-icon>wifi</mat-icon>
@@ -64,14 +64,14 @@
           <mat-divider></mat-divider>
 
           <div fxFlex>
-            <button [disabled]="form.invalid" mat-raised-button color="primary" (click)="save()">Speichern</button>
+            <button [disabled]="form.invalid" mat-raised-button color="primary" (click)="schadenService.save(form)">Speichern</button>
           </div>
         </div>
       </div>
     </mat-tab>
 
     <mat-tab label="Schadensliste">
-      <ng-container *ngIf="schaeden$ | async as schaeden">
+      <ng-container *ngIf="(schaeden$ | async) as schaeden">
 
         <ng-template mat-tab-label>
           <div>Schadensliste ({{ schaeden.length}})</div>
@@ -82,7 +82,7 @@
             <mat-nav-list>
               <mat-list-item *ngFor="let schaden of schaeden">
                 <a matLine (click)="onSelect(schaden)">{{ schaden.title }}</a>
-                <button mat-icon-button (click)="deleteSchaden(schaden.id)">
+                <button mat-icon-button (click)="schadenService.delete(schaden.id!!)">
                   <mat-icon>delete</mat-icon>
                 </button>
               </mat-list-item>

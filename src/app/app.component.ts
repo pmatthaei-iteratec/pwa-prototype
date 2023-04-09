@@ -1,13 +1,14 @@
 import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {db, Schaden} from "./db";
-import {liveQuery} from "dexie";
+import {liveQuery, PromiseExtended} from "dexie";
 import {Control, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
 import {Observable} from "rxjs";
 import {UpdateNotificationService} from "./update-notification.service";
 import DrawConstructorOptions = Control.DrawConstructorOptions;
+import {SchadenService} from "./schaden.service";
 
 @Component({
   selector: 'app-root',
@@ -34,11 +35,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   availableSpace!: string
   selected: Schaden | undefined
 
-  schaeden$ = liveQuery(() => this.getSchaeden());
+  schaeden$ = this.schadenService.getAll()
 
   isOnline$: Observable<boolean>
 
-  constructor(private fb: FormBuilder, private sanitizer: DomSanitizer, private onlineStateService: OnlineStateService, private updateNotificationService: UpdateNotificationService) {
+  constructor(private fb: FormBuilder, private sanitizer: DomSanitizer, public schadenService: SchadenService, private onlineStateService: OnlineStateService, private updateNotificationService: UpdateNotificationService) {
     this.bildCtrl = this.fb.control(null)
     this.countCtrl = this.fb.control(null)
     this.form = this.fb.group({
@@ -55,10 +56,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.canvas = this.canvasRef.nativeElement;
     this.video = this.videoRef.nativeElement;
-
-    this.showEstimatedQuota().then((available) => {
-      this.availableSpace = available
-    })
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({
@@ -97,30 +94,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.video.srcObject = null;
   }
 
-  async save() {
-    const count = +this.countCtrl.value ?? 1
-    const bild = this.form.value.bild as File;
-    const schaeden: Schaden[] = [...Array(count).keys()].map((id: number) => ({
-      title: `${this.form.value.title} ${id}`,
-      bild: this.form.value.bild,
-      path: `${bild.name} ${bild.webkitRelativePath}`
-    }))
-    await db.schaeden.bulkAdd([...schaeden]);
-  }
-
-  async getSchaeden() {
-    return await db.schaeden.toArray()
-  }
-
-  async getSchaden() {
-    return await db.schaeden.get(this.selected?.id ?? -1);
-  }
-
-  async deleteSchaden(id?: number) {
-    id ? await db.schaeden.delete(id) : undefined
-  }
-
-  setFile(event: any) {
+  setFile(event: any): void {
     const selectedFile = event?.target.files || event.srcElement.files;
     if (selectedFile !== null && selectedFile !== '' && selectedFile.length > 0) {
       const file = selectedFile[0];
@@ -129,7 +103,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  public clearFile() {
+  public clearFile(): void {
     this.imageFileInput.nativeElement.value = null;
     this.frontCameraInput.nativeElement.value = null;
   }
@@ -225,7 +199,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   }
 
-  async verifyPermission(fileHandle: any, readWrite?: boolean) {
+  async verifyPermission(fileHandle: any, readWrite?: boolean): Promise<boolean> {
     const options: any = {};
     if (readWrite) {
       options.mode = 'readwrite';
