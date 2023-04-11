@@ -79,8 +79,11 @@
           <span [matBadge]="unsyncedCount$ | async" matBadgeColor="warn" matBadgeSize="small" matBadgeOverlap="false">Schadensliste</span>
         </ng-template>
 
-        <div fxLayout="column">
-          <button mat-raised-button (click)="syncAllSchaeden()">Synchronisieren</button>
+        <div fxLayout="column" fxLayoutGap="8px" style="padding: 8px">
+          <div fxLayout="row" fxLayoutAlign="center">
+            <button [disabled]="(unsyncedCount$ | async) == 0" mat-raised-button color="primary" (click)="syncAllSchaeden()">Synchronisieren</button>
+          </div>
+
           <div fxLayout.gt-lg="row" fxLayout.sm="column">
             <div fxFlex="50%" fxLayout="column" style="padding: 12px">
               <mat-nav-list>

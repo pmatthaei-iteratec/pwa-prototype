@@ -4,7 +4,7 @@ import {db, Schaden} from "./db";
 import {Control, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
-import {from, Observable} from "rxjs";
+import {forkJoin, from, mergeMap, Observable} from "rxjs";
 import {UpdateNotificationService} from "./update-notification.service";
 import DrawConstructorOptions = Control.DrawConstructorOptions;
 import {SchadenService} from "./schaden.service";
@@ -218,7 +218,14 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   syncAllSchaeden(): void {
-
+    const sub = this.schadenService.getAllUnsynced().pipe(
+      mergeMap((schaeden: Schaden[]) => forkJoin(schaeden.map(schaden => this.syncService.sync(schaden))))
+    ).subscribe({
+      next: value => {
+        this.snackBar.open(`${value.filter(item => item !== null)} Schäden synchronisiert.`)
+        sub.unsubscribe()
+      }
+    })
   }
 
   syncSchaden(schaden: Schaden): void {

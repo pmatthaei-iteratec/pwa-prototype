@@ -13,12 +13,12 @@ export class SchadenService {
   }
 
   save(form: FormGroup) : void {
-    const count = form.value.count.value ?? 1
+    const count = form.value?.count?.value ?? 1
     const bild = form.value.bild as File;
     const schaeden: Schaden[] = [...Array(count).keys()].map((id: number) => ({
       title: `${form.value.title} ${id}`,
       bild: form.value.bild,
-      path: `${bild.name} ${bild.webkitRelativePath}`,
+      path: bild ? `${bild.name} ${bild.webkitRelativePath}`: undefined,
       synced: 0
     }))
     liveQuery(async ()=>await db.schaeden.bulkAdd([...schaeden])).subscribe() // TODO Better solution
