@@ -153,7 +153,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   onSelect(id: number): void {
-    this.dialog.open(SchadenDetailComponent, {data: {id}, width: '100vw', height: '100vh'})
+    this.dialog.open(SchadenDetailComponent, {data: {id}, width: '100%', height: '100vh'})
   }
 
   openFile = async () => {

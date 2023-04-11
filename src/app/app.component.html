@@ -89,13 +89,13 @@
               <mat-nav-list>
                 <mat-list-item (click)="onSelect(schaden.id!!)" *ngFor="let schaden of schaeden">
                   <a matLine>{{ schaden.title }}</a>
-                  <button mat-icon-button [disabled]="schaden.synced == 1" (click)="syncSchaden(schaden)">
+                  <button mat-icon-button [disabled]="schaden.synced == 1" (click)="syncSchaden(schaden); $event.stopPropagation()">
                     <mat-icon
                       [color]="schaden.synced == 1 ? 'primary':'warn'">
                       {{ schaden.synced == 1 ? 'done' : 'sync_problem' }}
                     </mat-icon>
                   </button>
-                  <button mat-icon-button (click)="schadenService.delete(schaden.id!!)">
+                  <button mat-icon-button (click)="schadenService.delete(schaden.id!!); $event.stopPropagation()">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </mat-list-item>
