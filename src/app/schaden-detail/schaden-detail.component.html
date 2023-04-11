@@ -1,0 +1,20 @@
+<ng-container *ngIf="(selected$ | async) as selected">
+
+  <h2 mat-dialog-title>Schaden {{ data.id }}</h2>
+  <mat-dialog-content>
+    <div fxLayout="column" style="padding: 12px">
+      <span>{{ selected.title}}</span>
+      <img *ngIf="selected.bild as hasBild" [src]="getAsDataURL(selected.bild)">
+      <ng-template #hasBild>
+        <span>Kein Bild vorhanden</span>
+      </ng-template>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Schließen</button>
+    <button mat-button [disabled]="selected.synced == 1" [mat-dialog-close]="true" cdkFocusInitial>Synchronisieren
+    </button>
+  </mat-dialog-actions>
+
+</ng-container>
+

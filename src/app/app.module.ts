@@ -21,10 +21,13 @@ import {MatTabsModule} from "@angular/material/tabs";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {HttpClientModule} from "@angular/common/http";
 import {MatBadgeModule} from "@angular/material/badge";
+import { SchadenDetailComponent } from './schaden-detail/schaden-detail.component';
+import {MatDialogModule} from "@angular/material/dialog";
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    SchadenDetailComponent
   ],
   imports: [
     BrowserModule,
@@ -51,6 +54,7 @@ import {MatBadgeModule} from "@angular/material/badge";
     MatTabsModule,
     MatSnackBarModule,
     MatBadgeModule,
+    MatDialogModule,
 
     LeafletModule,
     LeafletDrawModule

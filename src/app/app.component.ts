@@ -11,6 +11,8 @@ import {SchadenService} from "./schaden.service";
 import {OfflineSyncService} from "./offline-sync.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {liveQuery} from "dexie";
+import {MatDialog} from "@angular/material/dialog";
+import {SchadenDetailComponent} from "./schaden-detail/schaden-detail.component";
 
 @Component({
   selector: 'app-root',
@@ -33,12 +35,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   form: FormGroup
   bildCtrl: FormControl
   countCtrl: FormControl
-  selected$?: Observable<Schaden>
   schaeden$ = this.schadenService.getAll()
   isOnline$: Observable<boolean>
   unsyncedCount$: Observable<number>
 
-  constructor(private fb: FormBuilder, private snackBar: MatSnackBar, private sanitizer: DomSanitizer, public schadenService: SchadenService, private syncService: OfflineSyncService, private onlineStateService: OnlineStateService, private updateNotificationService: UpdateNotificationService) {
+  constructor(private fb: FormBuilder, private dialog: MatDialog, private snackBar: MatSnackBar, private sanitizer: DomSanitizer, public schadenService: SchadenService, private syncService: OfflineSyncService, private onlineStateService: OnlineStateService, private updateNotificationService: UpdateNotificationService) {
     this.bildCtrl = this.fb.control(null)
     this.countCtrl = this.fb.control(null)
     this.form = this.fb.group({
@@ -152,12 +153,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   onSelect(id: number): void {
-    this.selected$ = this.schadenService.get(id)
-  }
-
-  getAsDataURL(bild: Blob): SafeUrl {
-    let objectURL = URL.createObjectURL(bild);
-    return this.sanitizer.bypassSecurityTrustUrl(objectURL);
+    this.dialog.open(SchadenDetailComponent, {data: {id}, width: '100vw', height: '100vh'})
   }
 
   openFile = async () => {
