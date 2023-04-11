@@ -5,7 +5,7 @@ export interface Schaden {
   title: string;
   bild?: Blob;
   path?: string;
-  synced?: boolean
+  synced: number
 }
 
 export class AppDB extends Dexie {
@@ -14,7 +14,7 @@ export class AppDB extends Dexie {
   constructor() {
     super('ngdexieliveQuery');
     this.version(3).stores({
-      schaeden: '++id',
+      schaeden: '++id, synced',
     });
     this.on('populate', () => this.populate());
   }
@@ -23,12 +23,15 @@ export class AppDB extends Dexie {
     await db.schaeden.bulkAdd([
       {
         title: 'Test Schaden 1',
+        synced: 0
       },
       {
-        title: 'Test Schaden 1',
+        title: 'Test Schaden 2',
+        synced: 0
       },
       {
         title: 'Test Schaden 3',
+        synced: 0
       },
     ]);
   }

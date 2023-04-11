@@ -19,6 +19,8 @@ import {LeafletDrawModule} from "@asymmetrik/ngx-leaflet-draw";
 import {MatToolbarModule} from "@angular/material/toolbar";
 import {MatTabsModule} from "@angular/material/tabs";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
+import {HttpClientModule} from "@angular/common/http";
+import {MatBadgeModule} from "@angular/material/badge";
 
 @NgModule({
   declarations: [
@@ -37,6 +39,7 @@ import {MatSnackBarModule} from "@angular/material/snack-bar";
       registrationStrategy: 'registerImmediately'
     }),
 
+    HttpClientModule,
     BrowserAnimationsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -47,6 +50,7 @@ import {MatSnackBarModule} from "@angular/material/snack-bar";
     MatToolbarModule,
     MatTabsModule,
     MatSnackBarModule,
+    MatBadgeModule,
 
     LeafletModule,
     LeafletDrawModule

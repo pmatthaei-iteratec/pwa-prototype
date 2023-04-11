@@ -1,14 +1,16 @@
 import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {db, Schaden} from "./db";
-import {liveQuery, PromiseExtended} from "dexie";
 import {Control, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
-import {Observable} from "rxjs";
+import {from, Observable} from "rxjs";
 import {UpdateNotificationService} from "./update-notification.service";
 import DrawConstructorOptions = Control.DrawConstructorOptions;
 import {SchadenService} from "./schaden.service";
+import {OfflineSyncService} from "./offline-sync.service";
+import {MatSnackBar} from "@angular/material/snack-bar";
+import {liveQuery} from "dexie";
 
 @Component({
   selector: 'app-root',
@@ -31,15 +33,12 @@ export class AppComponent implements OnInit, AfterViewInit {
   form: FormGroup
   bildCtrl: FormControl
   countCtrl: FormControl
-
-  availableSpace!: string
-  selected: Schaden | undefined
-
+  selected$?: Observable<Schaden>
   schaeden$ = this.schadenService.getAll()
-
   isOnline$: Observable<boolean>
+  unsyncedCount$: Observable<number>
 
-  constructor(private fb: FormBuilder, private sanitizer: DomSanitizer, public schadenService: SchadenService, private onlineStateService: OnlineStateService, private updateNotificationService: UpdateNotificationService) {
+  constructor(private fb: FormBuilder, private snackBar: MatSnackBar, private sanitizer: DomSanitizer, public schadenService: SchadenService, private syncService: OfflineSyncService, private onlineStateService: OnlineStateService, private updateNotificationService: UpdateNotificationService) {
     this.bildCtrl = this.fb.control(null)
     this.countCtrl = this.fb.control(null)
     this.form = this.fb.group({
@@ -48,6 +47,8 @@ export class AppComponent implements OnInit, AfterViewInit {
       count: this.countCtrl
     })
     this.isOnline$ = this.onlineStateService.isOnline()
+
+    this.unsyncedCount$ = from(liveQuery(() => schadenService.countAllUnsynced()))
   }
 
   ngOnInit() {
@@ -150,8 +151,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  async onSelect(schaden: Schaden) {
-    this.selected = schaden?.id ? await db.schaeden.get(schaden.id) : undefined;
+  onSelect(id: number): void {
+    this.selected$ = this.schadenService.get(id)
   }
 
   getAsDataURL(bild: Blob): SafeUrl {
@@ -214,5 +215,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
     // The user didn't grant permission, so return false.
     return false;
+  }
+
+  syncAllSchaeden(): void {
+
+  }
+
+  syncSchaden(schaden: Schaden): void {
+    this.syncService.sync(schaden).subscribe({
+        next: value => this.snackBar.open(`Successfully synced ${schaden.title}`, undefined, {duration: 1500}),
+        error: err => this.snackBar.open(`Sync aborted for ${schaden.title}: ${err}`, undefined, {duration: 1500}),
+      }
+    )
   }
 }
