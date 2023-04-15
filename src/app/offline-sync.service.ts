@@ -1,9 +1,20 @@
 import {Injectable} from '@angular/core';
 import {OnlineStateService} from "./online-state.service";
-import {SchadenService} from "./schaden.service";
-import {catchError, filter, forkJoin, map, mergeMap, Observable, of, takeWhile} from "rxjs";
+import {
+  BehaviorSubject,
+  catchError,
+  filter,
+  forkJoin,
+  from,
+  map,
+  merge,
+  mergeMap,
+  Observable,
+  of,
+  Subscription,
+  takeWhile
+} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {Schaden} from "./db";
 import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Injectable({
@@ -11,18 +22,35 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 })
 export class OfflineSyncService {
 
-  constructor(private onlineStateService: OnlineStateService, private schadenService: SchadenService, private snackBar: MatSnackBar, private http: HttpClient) {
-    const unsycned$ = this.onlineStateService.isOnline().pipe(
-      takeWhile(isOnline => isOnline),
-      mergeMap((_) => this.schadenService.getAllUnsynced()),
+  private unsycnedDatasets: BehaviorSubject<(Observable<any[]>)[]> = new BehaviorSubject<(Observable<any[]>)[]>([])
+  private updateQuota$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true)
+  private readonly quota$: Observable<string>
+  private readonly totalUnsyncedData$: Observable<number>;
+
+  constructor(private onlineStateService: OnlineStateService, private snackBar: MatSnackBar, private http: HttpClient) {
+
+    this.quota$ = this.updateQuota$.pipe(
+      filter(update => update),
+      mergeMap(_ => from(this.estimateQuota()))
     )
 
-    unsycned$.pipe(filter(schaeden => schaeden.length > 0)).subscribe({
+    this.totalUnsyncedData$ = this.unsycnedDatasets.pipe(mergeMap(v => merge(...v)), map(v => v.length))
+
+  }
+
+  register<T>(unsyncedData$: Observable<T[]>, syncEndpoint: string, onUpdate: (entity: T) => Observable<number>, onRead: (key: number) => Observable<T>): Subscription {
+    const unsycned$ = this.onlineStateService.isOnline().pipe(
+      takeWhile(isOnline => isOnline),
+      mergeMap((_) => unsyncedData$),
+    )
+
+    this.unsycnedDatasets.next([...this.unsycnedDatasets.value, unsyncedData$])
+    return unsycned$.pipe(filter(schaeden => schaeden.length > 0)).subscribe({
       next: value => {
         const ref$ = this.snackBar.open(`${value.length} unsychronisierte Schäden gefunden.`, 'Sync')
         const sub = ref$.onAction().pipe(
-          mergeMap(() => this.schadenService.getAllUnsynced()),
-          mergeMap((schaeden: Schaden[]) => forkJoin(schaeden.map(schaden => this.sync(schaden))))
+          mergeMap(() => unsyncedData$),
+          mergeMap((entities: T[]) => forkJoin(entities.map(entity => this.sync(entity, syncEndpoint, onUpdate, onRead))))
         ).subscribe({
           next: (value) => {
             this.snackBar.open(`${value.filter(item => item !== null)} Schäden synchronisiert.`)
@@ -32,23 +60,41 @@ export class OfflineSyncService {
         });
       }
     })
-
-    const test = this.onlineStateService.isOnline().pipe(
-      takeWhile(isOnline => isOnline),
-      mergeMap((_) => this.schadenService.getAllUnsynced()),
-      mergeMap(schaeden => forkJoin(schaeden.map(schaden => this.sync(schaden)))
-      )
-    )
-
   }
 
-  sync(schaden: Schaden): Observable<Schaden | null> {
-    return this.http.post("http://localhost:8081/api/schaden", schaden).pipe(
-      map(res => ({...schaden, synced: 1} as Schaden)),
-      mergeMap((schaden) => this.schadenService.update(schaden)),
-      mergeMap((key) => this.schadenService.get(key)),
+  sync<T>(entity: T, syncEndpoint: string, onUpdate: (entity: T) => Observable<number>, onRead: (key: number) => Observable<T>): Observable<T | null> {
+    return this.http.post(syncEndpoint, entity).pipe(
+      map(res => ({...entity, synced: 1})),
+      mergeMap((schaden) => onUpdate(schaden)),
+      mergeMap((key) => onRead(key)),
       catchError(() => of(null))
     );
   }
 
+  updateQuota(): void {
+    this.updateQuota$.next(true)
+  }
+
+  private async estimateQuota(): Promise<string> {
+    if (navigator.storage && navigator.storage.estimate) {
+      const {usage, quota} = await navigator.storage.estimate();
+      if (quota && usage) {
+        const availableSpaceInBytes = quota - usage;
+        const availableSpaceInMB = availableSpaceInBytes / (1024 * 1024);
+        return `${availableSpaceInMB.toFixed(0)} MB available.`
+      } else {
+        return `- MB available.`
+      }
+    } else {
+      return "StorageManager not found"
+    }
+  }
+
+  getQuota(): Observable<string> {
+    return this.quota$
+  }
+
+  getTotalUnsyncedData(): Observable<number> {
+    return this.totalUnsyncedData$
+  }
 }

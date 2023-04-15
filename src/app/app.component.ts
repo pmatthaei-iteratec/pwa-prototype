@@ -1,11 +1,9 @@
 import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {Schaden} from "./db";
 import {Control, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
 import {DomSanitizer} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
-import {forkJoin, from, mergeMap, Observable} from "rxjs";
-import {UpdateNotificationService} from "./update-notification.service";
+import {from, Observable} from "rxjs";
 import {SchadenService} from "./schaden.service";
 import {OfflineSyncService} from "./offline-sync.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
@@ -39,8 +37,17 @@ export class AppComponent implements OnInit, AfterViewInit {
   isOnline$: Observable<boolean>
   unsyncedCount$: Observable<number>
   estimatedQuota$: Observable<string>
+  totalUnsyncedData$: Observable<number>;
 
-  constructor(private fb: FormBuilder, private dialog: MatDialog, private snackBar: MatSnackBar, private sanitizer: DomSanitizer, public schadenService: SchadenService, private syncService: OfflineSyncService, private onlineStateService: OnlineStateService, private updateNotificationService: UpdateNotificationService) {
+  constructor(
+    private fb: FormBuilder,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+    private sanitizer: DomSanitizer,
+    public schadenService: SchadenService,
+    private syncService: OfflineSyncService,
+    private onlineStateService: OnlineStateService
+  ) {
     this.bildCtrl = this.fb.control(null)
     this.countCtrl = this.fb.control(null)
     this.form = this.fb.group({
@@ -51,7 +58,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.isOnline$ = this.onlineStateService.isOnline()
 
     this.unsyncedCount$ = from(liveQuery(() => schadenService.countAllUnsynced()))
-    this.estimatedQuota$ = from(this.getEstimatedQuota())
+    this.estimatedQuota$ = this.syncService.getQuota()
+    this.totalUnsyncedData$ = this.syncService.getTotalUnsyncedData()
   }
 
   ngOnInit() {
@@ -134,24 +142,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.drawnItems.addLayer(e.layer);
   }
 
-
   onMapReady(map: Map) {
     map.invalidateSize()
-  }
-
-  async getEstimatedQuota(): Promise<string> {
-    if (navigator.storage && navigator.storage.estimate) {
-      const {usage, quota} = await navigator.storage.estimate();
-      if (quota && usage) {
-        const availableSpaceInBytes = quota - usage;
-        const availableSpaceInMB = availableSpaceInBytes / (1024 * 1024);
-        return `${availableSpaceInMB.toFixed(0)} MB available.`
-      } else {
-        return `- MB available.`
-      }
-    } else {
-      return "StorageManager not found"
-    }
   }
 
   onSelect(id: number): void {
@@ -215,22 +207,4 @@ export class AppComponent implements OnInit, AfterViewInit {
     return false;
   }
 
-  syncAllSchaeden(): void {
-    const sub = this.schadenService.getAllUnsynced().pipe(
-      mergeMap((schaeden: Schaden[]) => forkJoin(schaeden.map(schaden => this.syncService.sync(schaden))))
-    ).subscribe({
-      next: value => {
-        this.snackBar.open(`${value.filter(item => item !== null)} Schäden synchronisiert.`)
-        sub.unsubscribe()
-      }
-    })
-  }
-
-  syncSchaden(schaden: Schaden): void {
-    this.syncService.sync(schaden).subscribe({
-        next: value => this.snackBar.open(`Successfully synced ${schaden.title}`, undefined, {duration: 1500}),
-        error: err => this.snackBar.open(`Sync aborted for ${schaden.title}: ${err}`, undefined, {duration: 1500}),
-      }
-    )
-  }
 }

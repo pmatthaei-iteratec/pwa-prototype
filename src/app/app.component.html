@@ -4,7 +4,9 @@
       <mat-icon>menu</mat-icon>
     </button>
     <span fxFlex="grow">BMS Mobile</span>
-    <mat-icon [matTooltip]="(estimatedQuota$ | async) ?? ''">storage</mat-icon>
+    <button [matTooltip]="(estimatedQuota$ | async) ?? ''" mat-icon-button>
+      <mat-icon>storage</mat-icon>
+    </button>
     <button mat-icon-button>
       <ng-container *ngIf="isOnline$ | async; else showOffline">
         <mat-icon>wifi</mat-icon>
@@ -80,12 +82,13 @@
         </ng-template>
 
         <div fxLayout="column" fxLayoutGap="8px" style="padding: 8px">
-          <div fxLayout="row" fxLayoutAlign="center">
+          <div fxFlex fxLayout="column" fxLayoutAlign=" center center" fxLayoutGap="8px">
+            <span style="font-size: 12px">{{ totalUnsyncedData$ | async }} unsynchronisierte Objekte</span>
             <span style="font-size: 12px">{{ estimatedQuota$ | async }}</span>
           </div>
           <div fxLayout="row" fxLayoutAlign="center">
             <button [disabled]="(unsyncedCount$ | async) == 0" mat-raised-button color="primary"
-                    (click)="syncAllSchaeden()">Synchronisieren
+                    (click)="schadenService.syncAllSchaeden()">Synchronisieren
             </button>
           </div>
 
@@ -95,7 +98,7 @@
                 <mat-list-item (click)="onSelect(schaden.id!!)" *ngFor="let schaden of schaeden">
                   <a matLine>{{ schaden.title }}</a>
                   <button mat-icon-button [disabled]="schaden.synced == 1"
-                          (click)="syncSchaden(schaden); $event.stopPropagation()">
+                          (click)="schadenService.syncSchaden(schaden); $event.stopPropagation()">
                     <mat-icon
                       [color]="schaden.synced == 1 ? 'primary':'warn'">
                       {{ schaden.synced == 1 ? 'done' : 'sync_problem' }}
