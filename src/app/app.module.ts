@@ -21,8 +21,9 @@ import {MatTabsModule} from "@angular/material/tabs";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {HttpClientModule} from "@angular/common/http";
 import {MatBadgeModule} from "@angular/material/badge";
-import { SchadenDetailComponent } from './schaden-detail/schaden-detail.component';
+import {SchadenDetailComponent} from './schaden-detail/schaden-detail.component';
 import {MatDialogModule} from "@angular/material/dialog";
+import {MatTooltipModule} from "@angular/material/tooltip";
 
 @NgModule({
   declarations: [
@@ -57,7 +58,8 @@ import {MatDialogModule} from "@angular/material/dialog";
     MatDialogModule,
 
     LeafletModule,
-    LeafletDrawModule
+    LeafletDrawModule,
+    MatTooltipModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -1,18 +1,7 @@
 import {Injectable} from '@angular/core';
 import {OnlineStateService} from "./online-state.service";
 import {SchadenService} from "./schaden.service";
-import {
-  catchError, filter,
-  forkJoin,
-  from,
-  map,
-  mergeMap,
-  Observable,
-  ObservedValueOf,
-  of,
-  OperatorFunction,
-  takeWhile, tap
-} from "rxjs";
+import {catchError, filter, forkJoin, map, mergeMap, Observable, of, takeWhile} from "rxjs";
 import {HttpClient} from "@angular/common/http";
 import {Schaden} from "./db";
 import {MatSnackBar} from "@angular/material/snack-bar";
@@ -30,10 +19,7 @@ export class OfflineSyncService {
 
     unsycned$.pipe(filter(schaeden => schaeden.length > 0)).subscribe({
       next: value => {
-        const ref$ = this.snackBar.open(`${value.length} unsychronisierte Schäden gefunden.`, 'Sync', {
-          verticalPosition: "top",
-          horizontalPosition: "right"
-        })
+        const ref$ = this.snackBar.open(`${value.length} unsychronisierte Schäden gefunden.`, 'Sync')
         const sub = ref$.onAction().pipe(
           mergeMap(() => this.schadenService.getAllUnsynced()),
           mergeMap((schaeden: Schaden[]) => forkJoin(schaeden.map(schaden => this.sync(schaden))))
@@ -61,7 +47,7 @@ export class OfflineSyncService {
       map(res => ({...schaden, synced: 1} as Schaden)),
       mergeMap((schaden) => this.schadenService.update(schaden)),
       mergeMap((key) => this.schadenService.get(key)),
-      catchError(()=> of(null))
+      catchError(() => of(null))
     );
   }
 

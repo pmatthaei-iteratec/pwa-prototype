@@ -1,18 +1,18 @@
 import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {db, Schaden} from "./db";
+import {Schaden} from "./db";
 import {Control, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
-import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
+import {DomSanitizer} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
 import {forkJoin, from, mergeMap, Observable} from "rxjs";
 import {UpdateNotificationService} from "./update-notification.service";
-import DrawConstructorOptions = Control.DrawConstructorOptions;
 import {SchadenService} from "./schaden.service";
 import {OfflineSyncService} from "./offline-sync.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {liveQuery} from "dexie";
 import {MatDialog} from "@angular/material/dialog";
 import {SchadenDetailComponent} from "./schaden-detail/schaden-detail.component";
+import DrawConstructorOptions = Control.DrawConstructorOptions;
 
 @Component({
   selector: 'app-root',
@@ -38,6 +38,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   schaeden$ = this.schadenService.getAll()
   isOnline$: Observable<boolean>
   unsyncedCount$: Observable<number>
+  estimatedQuota$: Observable<string>
 
   constructor(private fb: FormBuilder, private dialog: MatDialog, private snackBar: MatSnackBar, private sanitizer: DomSanitizer, public schadenService: SchadenService, private syncService: OfflineSyncService, private onlineStateService: OnlineStateService, private updateNotificationService: UpdateNotificationService) {
     this.bildCtrl = this.fb.control(null)
@@ -50,6 +51,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.isOnline$ = this.onlineStateService.isOnline()
 
     this.unsyncedCount$ = from(liveQuery(() => schadenService.countAllUnsynced()))
+    this.estimatedQuota$ = from(this.getEstimatedQuota())
   }
 
   ngOnInit() {
@@ -137,7 +139,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     map.invalidateSize()
   }
 
-  async showEstimatedQuota(): Promise<string> {
+  async getEstimatedQuota(): Promise<string> {
     if (navigator.storage && navigator.storage.estimate) {
       const {usage, quota} = await navigator.storage.estimate();
       if (quota && usage) {
