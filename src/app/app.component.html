@@ -143,16 +143,7 @@
         </div>
       </ng-template>
       <ng-template matTabContent>
-        <div style="height: 400px">
-          <div leaflet style="height: 400px" fxFlexFill
-               leafletDraw
-               (leafletMapReady)="onMapReady($event)"
-               [leafletOptions]="options"
-               [leafletDrawOptions]="drawOptions"
-               (leafletDrawCreated)="onDrawCreated($event)">
-            <div [leafletLayer]="drawnItems"></div>
-          </div>
-        </div>
+
       </ng-template>
     </mat-tab>
   </mat-tab-group>

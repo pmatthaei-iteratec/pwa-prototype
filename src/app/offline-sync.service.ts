@@ -47,16 +47,16 @@ export class OfflineSyncService {
     this.unsycnedDatasets.next([...this.unsycnedDatasets.value, input.unsyncedData$])
     return unsycned$.pipe(filter(schaeden => schaeden.length > 0)).subscribe({
       next: value => {
-        const ref$ = this.snackBar.open(`${value.length} unsychronisierte Schäden gefunden.`, 'Sync')
+        const ref$ = this.snackBar.open(`${value.length} unsychronisierte Schäden gefunden.`, 'Sync', {duration: 1500})
         const sub = ref$.onAction().pipe(
           mergeMap(() => input.unsyncedData$),
           mergeMap((entities: T[]) => forkJoin(entities.map(entity => this.sync(entity, input.syncEndpoint, input.onUpdate, input.onRead))))
         ).subscribe({
           next: (value) => {
-            this.snackBar.open(`${value.filter(item => item !== null)} Schäden synchronisiert.`)
+            this.snackBar.open(`${value.filter(item => item !== null)} Schäden synchronisiert.`, undefined, {duration: 1500})
             sub.unsubscribe()
           },
-          error: err => this.snackBar.open(err)
+          error: err => this.snackBar.open(err, undefined, {duration: 1500})
         });
       }
     })

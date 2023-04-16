@@ -1,16 +1,14 @@
 import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {Control, FeatureGroup, featureGroup, latLng, Map, tileLayer} from "leaflet";
 import {DomSanitizer} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
 import {from, Observable} from "rxjs";
 import {SchadenService} from "./schaden.service";
 import {OfflineSyncService} from "./offline-sync.service";
-import {MatSnackBar} from "@angular/material/snack-bar";
 import {liveQuery} from "dexie";
-import {MatDialog} from "@angular/material/dialog";
 import {SchadenDetailComponent} from "./schaden-detail/schaden-detail.component";
-import DrawConstructorOptions = Control.DrawConstructorOptions;
+import {MatDialog} from "@angular/material/dialog";
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
   selector: 'app-root',
@@ -118,32 +116,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   public clearFile(): void {
     this.imageFileInput.nativeElement.value = null;
     this.frontCameraInput.nativeElement.value = null;
-  }
-
-  // LEAFLET
-  options = {
-    layers: [
-      tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: '...'})
-    ],
-    zoom: 5,
-    center: latLng(46.879966, -121.726909)
-  };
-
-  drawnItems: FeatureGroup = featureGroup();
-
-  drawOptions = {
-    draw: {rectangle: {showArea: false}}, // Fix
-    edit: {
-      featureGroup: this.drawnItems
-    }
-  } as DrawConstructorOptions;
-
-  public onDrawCreated(e: any) {
-    this.drawnItems.addLayer(e.layer);
-  }
-
-  onMapReady(map: Map) {
-    map.invalidateSize()
   }
 
   onSelect(id: number): void {
