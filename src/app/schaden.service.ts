@@ -24,12 +24,12 @@ export class SchadenService {
       syncService.updateQuota()
     })
 
-    this.syncService.register<Schaden>(
-      this.getAllUnsynced(),
-      this.syncEndpoint,
-      this.update,
-      this.get
-    )
+    this.syncService.register<Schaden>({
+      unsyncedData$: this.getAllUnsynced(),
+      syncEndpoint: this.syncEndpoint,
+      onUpdate: this.update,
+      onRead: this.get
+    })
 
   }
 
@@ -42,7 +42,7 @@ export class SchadenService {
       path: bild ? `${bild.name} ${bild.webkitRelativePath}` : undefined,
       synced: 0
     }))
-    liveQuery(async () => await db.schaeden.bulkAdd([...schaeden])).subscribe() // TODO Better solution
+    liveQuery(async () => await db.schaeden.bulkAdd([...schaeden])).subscribe()
   }
 
   update(schaden: Schaden): Observable<number> {
@@ -99,8 +99,8 @@ export class SchadenService {
       this.update,
       this.get
     ).subscribe({
-        next: value => this.snackBar.open(`Successfully synced ${schaden.title}`, undefined, {duration: 1500}),
-        error: err => this.snackBar.open(`Sync aborted for ${schaden.title}: ${err}`, undefined, {duration: 1500}),
+        next: value => this.snackBar.open(`Erfolgreich synchronisiert: ${schaden.title}`, undefined, {duration: 1500}),
+        error: err => this.snackBar.open(`Synchronisation abgebrochen: ${schaden.title}: ${err}`, undefined, {duration: 1500}),
       }
     )
   }

@@ -1,20 +1,15 @@
 <div fxFlexFill fxLayout="column">
-  <mat-toolbar color="primary">
-    <button mat-icon-button>
-      <mat-icon>menu</mat-icon>
-    </button>
+  <mat-toolbar fxFlex="8%" color="primary">
     <span fxFlex="grow">BMS Mobile</span>
     <button [matTooltip]="(estimatedQuota$ | async) ?? ''" mat-icon-button>
       <mat-icon>storage</mat-icon>
     </button>
     <button mat-icon-button>
       <ng-container *ngIf="isOnline$ | async; else showOffline">
-        <mat-icon>wifi</mat-icon>
+        <mat-icon [matTooltip]='"Internetverbindung hergestellt"'>wifi</mat-icon>
       </ng-container>
       <ng-template #showOffline>
-        <mat-icon>
-          wifi_off
-        </mat-icon>
+        <mat-icon [matTooltip]='"Keine Internetverbindung"'>wifi_off</mat-icon>
       </ng-template>
     </button>
     <button mat-icon-button>
@@ -22,9 +17,15 @@
     </button>
   </mat-toolbar>
 
-  <mat-tab-group fxFlexFill style="overflow: auto">
+  <mat-tab-group fxFlex="92%" headerPosition="below">
 
-    <mat-tab label="Schadenserfassung">
+    <mat-tab>
+      <ng-template matTabLabel>
+        <div fxLayout="column" fxLayoutAlign="center center">
+          <mat-icon>edit</mat-icon>
+          <span style="font-size: 10px">Schadenserfassung</span>
+        </div>
+      </ng-template>
       <div fxFlex fxLayout="column" style="padding: 12px">
         <div [formGroup]="form" fxLayout="column" fxLayoutGap="12px">
 
@@ -33,15 +34,22 @@
             <input matInput formControlName="title">
           </mat-form-field>
 
+          <mat-form-field>
+            <mat-label>Bauwerksprüfung</mat-label>
+            <mat-select formControlName="bwp">
+              <mat-option *ngFor='let bwp of ["HP/2020/2"]' [value]="bwp">{{bwp}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
           <div fxFlex fxLayout="row" fxLayoutGap="12px">
             <button type="button" mat-raised-button (click)="cameraInput.click()">Bild aufnehmen</button>
             <input hidden #cameraInput type="file" #frontCameraInput (change)="setFile($event)" accept="image/*"
                    capture="environment"/>
 
-            <button type="button" mat-raised-button (click)="fileInput.click()">Bild auswählen</button>
-            <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*"/>
+            <!-- <button type="button" mat-raised-button (click)="fileInput.click()">Bild auswählen</button> -->
+            <!-- <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*"/> -->
 
-            <button type="button" mat-raised-button (click)="returnPathDirectories()">Bild auswählen (File API)</button>
+            <!-- <button type="button" mat-raised-button (click)="returnPathDirectories()">Bild auswählen (File API)</button> -->
 
           </div>
 
@@ -75,10 +83,19 @@
     </mat-tab>
 
     <mat-tab>
+
       <ng-container *ngIf="(schaeden$ | async) as schaeden">
 
+        <ng-template matTabLabel>
+          <div fxLayout="column" fxLayoutAlign="center center">
+            <mat-icon [matBadge]="unsyncedCount$ | async" matBadgeColor="warn" matBadgeSize="small"
+                      matBadgeOverlap="false">list
+            </mat-icon>
+            <span style="font-size: 10px">Speicher</span>
+          </div>
+        </ng-template>
         <ng-template mat-tab-label>
-          <span [matBadge]="unsyncedCount$ | async" matBadgeColor="warn" matBadgeSize="small" matBadgeOverlap="false">Schadensliste</span>
+
         </ng-template>
 
         <div fxLayout="column" fxLayoutGap="8px" style="padding: 8px">
@@ -118,7 +135,13 @@
       </ng-container>
     </mat-tab>
 
-    <mat-tab label="Übersichtsplan">
+    <mat-tab>
+      <ng-template matTabLabel>
+        <div fxLayout="column" fxLayoutAlign="center center">
+          <mat-icon>draw</mat-icon>
+          <span style="font-size: 10px">Einzeichnen</span>
+        </div>
+      </ng-template>
       <ng-template matTabContent>
         <div style="height: 400px">
           <div leaflet style="height: 400px" fxFlexFill
@@ -131,8 +154,6 @@
           </div>
         </div>
       </ng-template>
-
-
     </mat-tab>
   </mat-tab-group>
 </div>

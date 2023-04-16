@@ -24,6 +24,7 @@ import {MatBadgeModule} from "@angular/material/badge";
 import {SchadenDetailComponent} from './schaden-detail/schaden-detail.component';
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatTooltipModule} from "@angular/material/tooltip";
+import {MatSelectModule} from "@angular/material/select";
 
 @NgModule({
   declarations: [
@@ -59,7 +60,8 @@ import {MatTooltipModule} from "@angular/material/tooltip";
 
     LeafletModule,
     LeafletDrawModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSelectModule
   ],
   providers: [],
   bootstrap: [AppComponent]

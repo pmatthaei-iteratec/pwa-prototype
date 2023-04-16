@@ -38,19 +38,19 @@ export class OfflineSyncService {
 
   }
 
-  register<T>(unsyncedData$: Observable<T[]>, syncEndpoint: string, onUpdate: (entity: T) => Observable<number>, onRead: (key: number) => Observable<T>): Subscription {
+  register<T>(input: { unsyncedData$: Observable<T[]>, syncEndpoint: string, onUpdate: (entity: T) => Observable<number>, onRead: (key: number) => Observable<T> }): Subscription {
     const unsycned$ = this.onlineStateService.isOnline().pipe(
       takeWhile(isOnline => isOnline),
-      mergeMap((_) => unsyncedData$),
+      mergeMap((_) => input.unsyncedData$),
     )
 
-    this.unsycnedDatasets.next([...this.unsycnedDatasets.value, unsyncedData$])
+    this.unsycnedDatasets.next([...this.unsycnedDatasets.value, input.unsyncedData$])
     return unsycned$.pipe(filter(schaeden => schaeden.length > 0)).subscribe({
       next: value => {
         const ref$ = this.snackBar.open(`${value.length} unsychronisierte Schäden gefunden.`, 'Sync')
         const sub = ref$.onAction().pipe(
-          mergeMap(() => unsyncedData$),
-          mergeMap((entities: T[]) => forkJoin(entities.map(entity => this.sync(entity, syncEndpoint, onUpdate, onRead))))
+          mergeMap(() => input.unsyncedData$),
+          mergeMap((entities: T[]) => forkJoin(entities.map(entity => this.sync(entity, input.syncEndpoint, input.onUpdate, input.onRead))))
         ).subscribe({
           next: (value) => {
             this.snackBar.open(`${value.filter(item => item !== null)} Schäden synchronisiert.`)
