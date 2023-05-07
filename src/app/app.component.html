@@ -1,5 +1,10 @@
-<div fxFlexFill fxLayout="column">
-  <mat-toolbar fxFlex="8%" color="primary">
+<div fxFlexFill fxLayout="column" style="background-color: lightblue">
+
+  <button (click)="openDownloadForm()" mat-fab color="primary" class="bms-fab-main">
+    <mat-icon>add</mat-icon>
+  </button>
+
+  <mat-toolbar fxFlex="8vh" color="primary">
     <span fxFlex="grow">BMS Mobile</span>
     <button [matTooltip]="(estimatedQuota$ | async) ?? ''" mat-icon-button>
       <mat-icon>storage</mat-icon>
@@ -17,88 +22,40 @@
     </button>
   </mat-toolbar>
 
-  <mat-tab-group fxFlex="92%" headerPosition="below">
+  <mat-tab-group fxFlex="92vh" headerPosition="below" [dynamicHeight]="true">
 
-    <mat-tab>
+    <mat-tab bodyClass="full-height">
       <ng-template matTabLabel>
         <div fxLayout="column" fxLayoutAlign="center center">
-          <mat-icon>edit</mat-icon>
-          <span style="font-size: 10px">Schadenserfassung</span>
+          <mat-icon>maps_home_work</mat-icon>
+          <span style="font-size: 10px">Oberfläche</span>
         </div>
       </ng-template>
-      <div fxFlex fxLayout="column" style="padding: 12px">
-        <div [formGroup]="form" fxLayout="column" fxLayoutGap="12px">
-
-          <mat-form-field fxFlex>
-            <mat-label>Titel</mat-label>
-            <input matInput formControlName="title">
-          </mat-form-field>
-
-          <mat-form-field>
-            <mat-label>Bauwerksprüfung</mat-label>
-            <mat-select formControlName="bwp">
-              <mat-option *ngFor='let bwp of ["HP/2020/2"]' [value]="bwp">{{bwp}}</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <div fxFlex fxLayout="row" fxLayoutGap="12px">
-            <button type="button" mat-raised-button (click)="cameraInput.click()">Bild aufnehmen</button>
-            <input hidden #cameraInput type="file" #frontCameraInput (change)="setFile($event)" accept="image/*"
-                   capture="environment"/>
-
-            <!-- <button type="button" mat-raised-button (click)="fileInput.click()">Bild auswählen</button> -->
-            <!-- <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*"/> -->
-
-            <!-- <button type="button" mat-raised-button (click)="returnPathDirectories()">Bild auswählen (File API)</button> -->
-
-          </div>
-
-          <div fxFlex fxLayoutAlign="center">
-            <div fxFlex *ngIf="!videoCapable">Access to camera denied</div>
-            <video fxFlex width="100%" *ngIf="videoCapable && !pictureTaken" #video autoplay></video>
-            <canvas fxFlex [fxHide]="!pictureTaken" #canvas width="100%"></canvas>
-          </div>
-
-          <div fxFlex fxLayoutGap="12px">
-            <button *ngIf="videoCapable" mat-raised-button (click)="captureImage()">Bild aufnehmen</button>
-            <a *ngIf="pictureTaken" mat-flat-button href="{{downloadLink}}" download="image.png"><i
-              class="fa fa-download"></i>
-              Download</a>
-          </div>
-
-          <mat-form-field>
-            <mat-label>Anzahl</mat-label>
-            <input matInput formControlName="count" placeholder="Wie oft soll der Schaden hinterlegt werden?">
-          </mat-form-field>
-
-          <mat-divider></mat-divider>
-
-          <div fxFlex>
-            <button [disabled]="form.invalid" mat-raised-button color="primary" (click)="schadenService.save(form)">
-              Speichern
-            </button>
-          </div>
-        </div>
+      <div fxFlexFill fxLayout="column" fxLayoutGap="8px" style="padding: 12px">
+        <app-bauwerkspruefung-list style="height: 100vh"
+                                   [items]="bauwerkspruefungen$ | async"></app-bauwerkspruefung-list>
       </div>
     </mat-tab>
 
-    <mat-tab>
+    <mat-tab fxFlexFill>
 
       <ng-container *ngIf="(schaeden$ | async) as schaeden">
 
         <ng-template matTabLabel>
           <div fxLayout="column" fxLayoutAlign="center center">
-            <mat-icon [matBadge]="unsyncedCount$ | async" matBadgeColor="warn" matBadgeSize="small"
-                      matBadgeOverlap="false">list
+            <mat-icon>train
             </mat-icon>
-            <span style="font-size: 10px">Speicher</span>
+            <span style="font-size: 10px" [matBadge]="unsyncedCount$ | async" matBadgeColor="warn" matBadgeSize="small"
+                  matBadgeOverlap="false">U-Bahn</span>
           </div>
         </ng-template>
-        <ng-template mat-tab-label>
 
-        </ng-template>
-
-        <div fxLayout="column" fxLayoutGap="8px" style="padding: 8px">
+        <div fxFlexFill fxLayout="column" fxLayoutGap="8px" style="padding: 12px">
+          <app-bauwerkspruefung-list style="height: 100vh"
+                                     [items]="bauwerkspruefungen$ | async"></app-bauwerkspruefung-list>
+        </div>
+        <!-- Sync Speicher -->
+        <!-- <div fxFlexFill fxLayout="column" fxLayoutGap="8px" style="padding: 8px">
           <div fxFlex fxLayout="column" fxLayoutAlign=" center center" fxLayoutGap="8px">
             <span style="font-size: 12px">{{ totalUnsyncedData$ | async }} unsynchronisierte Objekte</span>
             <span style="font-size: 12px">{{ estimatedQuota$ | async }}</span>
@@ -129,24 +86,13 @@
             </div>
 
           </div>
-        </div>
-
+        </div>-->
 
       </ng-container>
     </mat-tab>
 
-    <mat-tab>
-      <ng-template matTabLabel>
-        <div fxLayout="column" fxLayoutAlign="center center">
-          <mat-icon>draw</mat-icon>
-          <span style="font-size: 10px">Einzeichnen</span>
-        </div>
-      </ng-template>
-      <ng-template matTabContent>
-
-      </ng-template>
-    </mat-tab>
   </mat-tab-group>
+
 </div>
 
 

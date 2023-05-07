@@ -2,8 +2,8 @@ import {Component, Inject, OnInit} from '@angular/core';
 import {Observable} from "rxjs";
 import {Schaden} from "../db";
 import {SchadenService} from "../schaden.service";
-import {MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA} from "@angular/material/legacy-dialog";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
+import {MAT_DIALOG_DATA} from "@angular/material/dialog";
 
 @Component({
   selector: 'app-schaden-detail',

@@ -38,6 +38,7 @@ export class SchadenService {
     const bild = form.value.bild as File;
     const schaeden: Schaden[] = [...Array(count).keys()].map((id: number) => ({
       title: `${form.value.title} ${id}`,
+      bwpId: -1, // TODO
       bild: form.value.bild,
       path: bild ? `${bild.name} ${bild.webkitRelativePath}` : undefined,
       synced: 0

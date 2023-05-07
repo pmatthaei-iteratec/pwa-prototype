@@ -1,5 +1,5 @@
-import {AfterViewInit, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
+import {Component, OnInit} from '@angular/core';
+import {FormBuilder} from "@angular/forms";
 import {DomSanitizer} from "@angular/platform-browser";
 import {OnlineStateService} from "./online-state.service";
 import {from, Observable} from "rxjs";
@@ -9,33 +9,24 @@ import {liveQuery} from "dexie";
 import {SchadenDetailComponent} from "./schaden-detail/schaden-detail.component";
 import {MatDialog} from "@angular/material/dialog";
 import {MatSnackBar} from "@angular/material/snack-bar";
+import {BauwerkspruefungService} from "./bauwerkspruefung.service";
+import {Bauwerkspruefung} from "./db";
+import {DownloadBauwerkspruefungComponent} from "./download-bauwerkspruefung/download-bauwerkspruefung.component";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit, AfterViewInit {
-  @ViewChild('video') videoRef!: ElementRef;
-  @ViewChild('canvas') canvasRef!: ElementRef;
-  @ViewChild('imageFileInput') imageFileInput!: ElementRef;
-  @ViewChild('frontCameraInput') frontCameraInput!: ElementRef;
+export class AppComponent implements OnInit {
 
-  private canvas: any;
-  private video: any;
-  public videoCapable = true;
-  public pictureTaken = false;
-  public downloadLink!: string;
-  private mediaStream: any;
-
-  form: FormGroup
-  bildCtrl: FormControl
-  countCtrl: FormControl
   schaeden$ = this.schadenService.getAll()
   isOnline$: Observable<boolean>
   unsyncedCount$: Observable<number>
   estimatedQuota$: Observable<string>
   totalUnsyncedData$: Observable<number>;
+
+  bauwerkspruefungen$: Observable<Bauwerkspruefung[]>
 
   constructor(
     private fb: FormBuilder,
@@ -43,17 +34,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     private snackBar: MatSnackBar,
     private sanitizer: DomSanitizer,
     public schadenService: SchadenService,
+    public bauwerkspruefungService: BauwerkspruefungService,
     private syncService: OfflineSyncService,
     private onlineStateService: OnlineStateService
   ) {
-    this.bildCtrl = this.fb.control(null)
-    this.countCtrl = this.fb.control(null)
-    this.form = this.fb.group({
-      title: this.fb.control(null, Validators.required),
-      bild: this.bildCtrl,
-      count: this.countCtrl
-    })
+
     this.isOnline$ = this.onlineStateService.isOnline()
+
+    this.bauwerkspruefungen$ = bauwerkspruefungService.getAll()
 
     this.unsyncedCount$ = from(liveQuery(() => schadenService.countAllUnsynced()))
     this.estimatedQuota$ = this.syncService.getQuota()
@@ -63,65 +51,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngOnInit() {
   }
 
-  ngAfterViewInit() {
-    this.canvas = this.canvasRef.nativeElement;
-    this.video = this.videoRef.nativeElement;
-
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({
-        video: {facingMode: {exact: "environment"}},
-        audio: false
-      }).then((stream) => {
-        this.mediaStream = stream;
-        this.videoCapable = true;
-        const that = this;
-        this.video.srcObject = this.mediaStream;
-        this.video.play().then((value: any) => {
-          that.canvas.width = that.video.videoWidth;
-          that.canvas.height = that.video.videoHeight;
-        });
-      })
-        .catch(err => {
-          this.videoCapable = false;
-        });
-    }
-  }
-
-  captureImage() {
-    this.canvasRef.nativeElement.height = this.videoRef.nativeElement.videoHeight;
-    this.canvasRef.nativeElement.width = this.videoRef.nativeElement.videoWidth;
-    const ctx: CanvasRenderingContext2D = this.canvas.getContext('2d');
-    ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-    this.pictureTaken = true;
-    this.downloadLink = this.canvas.toDataURL();
-    this.canvas.toBlob((blob: Blob) => {
-      this.bildCtrl.patchValue(blob)
-    });
-    this.video.pause();
-    for (const track of this.mediaStream.getTracks()) {
-      track.stop();
-    }
-    this.video.srcObject = null;
-  }
-
-  setFile(event: any): void {
-    const selectedFile = event?.target.files || event.srcElement.files;
-    if (selectedFile !== null && selectedFile !== '' && selectedFile.length > 0) {
-      const file = selectedFile[0];
-      this.bildCtrl.patchValue(file)
-      this.clearFile();
-    }
-  }
-
-  public clearFile(): void {
-    this.imageFileInput.nativeElement.value = null;
-    this.frontCameraInput.nativeElement.value = null;
-  }
-
-  onSelect(id: number): void {
-    this.dialog.open(SchadenDetailComponent, {data: {id}, width: '100%', height: '100vh'})
-  }
-
   openFile = async () => {
     const [handle] = await (window as any).showOpenFilePicker({
       startIn: 'pictures'
@@ -129,6 +58,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     handle.getFile().then(console.log)
     return handle.getFile();
   };
+
+  onSelect(id: number): void {
+    this.dialog.open(SchadenDetailComponent, {data: {id}, width: '100%', height: '100vh'})
+  }
 
   async returnPathDirectories() {
     const dirHandle = await (window as any).showDirectoryPicker({startIn: 'pictures'});
@@ -179,4 +112,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     return false;
   }
 
+  openDownloadForm() {
+    console.log("open")
+    this.dialog.open(DownloadBauwerkspruefungComponent, {data: {}, width: '100%', height: '60vh'})
+  }
 }

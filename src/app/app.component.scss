@@ -12,3 +12,14 @@ canvas, video {
 mat-tab-label {
   height: 80px !important;
 }
+
+.bms-sycned-list-item {
+  background-color: lightgreen;
+}
+
+.bms-fab-main {
+  z-index: 99;
+  position: fixed;
+  right: 1em;
+  bottom: 3em;
+}

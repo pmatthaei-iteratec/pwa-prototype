@@ -1,0 +1,31 @@
+<cdk-virtual-scroll-viewport fxFlex itemSize="50">
+  <div fxLayout="column" fxLayoutGap="8px">
+    <div *cdkVirtualFor="let item of items">
+      <mat-card class="bms-sycned-list-item">
+        <mat-card-header>
+          <mat-card-title>
+            {{item.pruefnummer}} - {{item.abkuerzung}}
+          </mat-card-title>
+          <mat-card-subtitle>{{item.fullName}}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-title>
+        </mat-card-title>
+        <mat-card-actions fxLayout="row">
+          <div fxFlex="80%" fxLayoutAlign="center center">
+            <button mat-icon-button>
+              <mat-icon>sync</mat-icon>
+            </button>
+          </div>
+          <div fxFlex="20%" fxLayoutAlign="center center">
+            <button mat-icon-button>
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+          </div>
+        </mat-card-actions>
+        <div fxFlexFill fxLayoutAlign="start center">
+        </div>
+      </mat-card>
+
+    </div>
+  </div>
+</cdk-virtual-scroll-viewport>

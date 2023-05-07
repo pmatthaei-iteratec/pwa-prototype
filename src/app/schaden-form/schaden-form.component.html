@@ -1,0 +1,54 @@
+<div fxHide [formGroup]="form" fxLayout="column" fxLayoutGap="12px">
+
+  <mat-form-field>
+    <mat-label>Bauwerk</mat-label>
+    <mat-select formControlName="bwp">
+      <mat-option *ngFor='let bwp of ["Baulos 1", "Baulos 2"]' [value]="bwp">{{bwp}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Bauwerksprüfung</mat-label>
+    <mat-select formControlName="bwp">
+      <mat-option *ngFor='let bwp of ["HP/2023/1", "EP/2023/1"]' [value]="bwp">{{bwp}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div fxFlex fxLayout="row" fxLayoutGap="12px">
+    <button type="button" mat-raised-button (click)="cameraInput.click()">Bild aufnehmen</button>
+    <input hidden #cameraInput type="file" #frontCameraInput (change)="setFile($event)" accept="image/*"
+           capture="environment"/>
+
+    <!-- <button type="button" mat-raised-button (click)="fileInput.click()">Bild auswählen</button> -->
+    <!-- <input hidden #fileInput type="file" #imageFileInput (change)="setFile($event)" accept="image/*"/> -->
+
+    <!-- <button type="button" mat-raised-button (click)="returnPathDirectories()">Bild auswählen (File API)</button> -->
+
+  </div>
+
+  <div fxFlex fxLayoutAlign="center">
+    <div fxFlex *ngIf="!videoCapable">Access to camera denied</div>
+    <video fxFlex width="100%" *ngIf="videoCapable && !pictureTaken" #video autoplay></video>
+    <canvas fxFlex [fxHide]="!pictureTaken" #canvas width="100%"></canvas>
+  </div>
+
+  <div fxFlex fxLayoutGap="12px">
+    <button *ngIf="videoCapable" mat-raised-button (click)="captureImage()">Bild aufnehmen</button>
+    <a *ngIf="pictureTaken" mat-flat-button href="{{downloadLink}}" download="image.png"><i
+      class="fa fa-download"></i>
+      Download</a>
+  </div>
+
+  <mat-form-field>
+    <mat-label>Anzahl</mat-label>
+    <input matInput formControlName="count" placeholder="Wie oft soll der Schaden hinterlegt werden?">
+  </mat-form-field>
+
+  <mat-divider></mat-divider>
+
+  <div fxFlex>
+    <button [disabled]="form.invalid" mat-raised-button color="primary" (click)="schadenService.save(form)">
+      Speichern
+    </button>
+  </div>
+</div>

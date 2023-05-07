@@ -23,12 +23,22 @@ import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {MatTabsModule} from "@angular/material/tabs";
 import {MatListModule} from "@angular/material/list";
 import {MatInputModule} from "@angular/material/input";
+import {MatCardModule} from "@angular/material/card";
+import {ScrollingModule} from "@angular/cdk/scrolling";
+import {SchadenFormComponent} from './schaden-form/schaden-form.component';
+import {BauwerkspruefungListComponent} from './bauwerkspruefung-list/bauwerkspruefung-list.component';
+import {BauwerkspruefungDetailComponent} from './bauwerkspruefung-detail/bauwerkspruefung-detail.component';
+import {DownloadBauwerkspruefungComponent} from './download-bauwerkspruefung/download-bauwerkspruefung.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    SchadenDetailComponent
+    SchadenDetailComponent,
+    SchadenFormComponent,
+    BauwerkspruefungListComponent,
+    BauwerkspruefungDetailComponent,
+    DownloadBauwerkspruefungComponent
   ],
   imports: [
     BrowserModule,
@@ -58,7 +68,10 @@ import {MatInputModule} from "@angular/material/input";
     MatDialogModule,
 
     MatTooltipModule,
-    MatSelectModule
+    MatSelectModule,
+    MatCardModule,
+    ScrollingModule,
+
   ],
   providers: [],
   bootstrap: [AppComponent]
